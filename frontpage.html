@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Steam Game Player Base</title>
+  <style>
+    /* Add your custom CSS styles here */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .game-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    .game-list li {
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #f4f4f4;
+    }
+  </style>
+</head>
+<body>
+  <h1>Steam Game Player Base</h1>
+  <input type="text" id="searchInput" placeholder="Search games..." />
+  <select id="sortSelect">
+    <option value="current">Current Players</option>
+    <option value="peak24h">24-Hour Peak</option>
+    <option value="allTime">All-Time Peak</option>
+  </select>
+  <ul class="game-list" id="gameList"></ul>
+
+  <script>
+    // Fetch game data from the Steam Web API
+    function fetchGameData() {
+      // Replace with your actual API endpoint and key
+      const apiUrl = 'https://api.steampowered.com/...';
+      const apiKey = 'your_api_key_here';
+
+      // Implement the logic to fetch game data and update the UI
+      fetch(apiUrl + '?key=' + apiKey)
+        .then(response => response.json())
+        .then(data => {
+          // Process the data and update the game list
+          updateGameList(data.games);
+        })
+        .catch(error => {
+          console.error('Error fetching game data:', error);
+        });
+    }
+
+    // Update the game list in the UI
+    function updateGameList(games) {
+      const gameList = document.getElementById('gameList');
+      gameList.innerHTML = '';
+
+      games.forEach(game => {
+        const gameItem = document.createElement('li');
+        gameItem.textContent = `${game.name} - Current: ${game.currentPlayers}, 24h Peak: ${game.peak24hPlayers}, All-Time: ${game.allTimePeakPlayers}`;
+        gameList.appendChild(gameItem);
+      });
+    }
+
+    // Add event listeners for search and sorting
+    document.getElementById('searchInput').addEventListener('input', filterGameList);
+    document.getElementById('sortSelect').addEventListener('change', sortGameList);
+
+    // Filter the game list based on the search input
+    function filterGameList() {
+      const searchInput = document.getElementById('searchInput');
+      const searchTerm = searchInput.value.toLowerCase();
+      const gameItems = document.querySelectorAll('.game-list li');
+
+      gameItems.forEach(item => {
+        const gameText = item.textContent.toLowerCase();
+        item.style.display = gameText.includes(searchTerm) ? 'block' : 'none';
+      });
+    }
+
+    // Sort the game list based on the selected option
+    function sortGameList() {
+      const sortSelect = document.getElementById('sortSelect');
+      const sortBy = sortSelect.value;
+      const gameItems = document.querySelectorAll('.game-list li');
+      const games = Array.from(gameItems).map(item => {
+        const [name, current, peak24h, allTime] = item.textContent.split(' - ');
+        return {
+          name,
+          currentPlayers: parseInt(current.split(': ')[1]),
+          peak24hPlayers: parseInt(peak24h.split(': ')[1]),
+          allTimePeakPlayers: parseInt(allTime.split(': ')[1])
+        };
+      });
+
+      games.sort((a, b) => {
+        switch (sortBy) {
+          case 'current':
+            return b.currentPlayers - a.currentPlayers;
+          case 'peak24h':
+            return b.peak24hPlayers - a.peak24hPlayers;
+          case 'allTime':
+            return b.allTimePeakPlayers - a.allTimePeakPlayers;
+          default:
+            return 0;
+        }
+      });
+
+      updateGameList(games);
+    }
+
+    // Fetch and display the initial game data
+    fetchGameData();
+  </script>
+</body>
+</html>
